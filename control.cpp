@@ -98,6 +98,7 @@ int init(vector<Product> &objects, vector<Product> &foods, vector<Product> &drin
     }
     else {
         cout << "ERROR OPENING FOODS FILE" << endl;
+        return 1;
     }
 
     InFoodFile.close();
