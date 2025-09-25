@@ -93,7 +93,7 @@ int init(vector<Product> &objects, vector<Product> &foods, vector<Product> &drin
             p.amount = stoi(data[3]);
             p.expire_date = data[4];
 
-            objects.push_back(p);
+            foods.push_back(p);
         }
     }
     else {
@@ -125,7 +125,7 @@ int init(vector<Product> &objects, vector<Product> &foods, vector<Product> &drin
             p.amount = stoi(data[3]);
             p.expire_date = data[4];
 
-            objects.push_back(p);
+            drinks.push_back(p);
         }
     }
     else {
