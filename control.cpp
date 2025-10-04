@@ -5,134 +5,153 @@
 #include <sstream>
 using namespace std;
 
+/*--------------------------------------------------------------------------------------------*/
 
-typedef struct 
-{
-    string ID;
+typedef struct {
+    string username;
+    string password;
     string name;
-    string category;
-    float price;
-    int amount;
-    string expire_date;
+    string role;
+} User;
 
-} Product;
+/*--------------------------------------------------------------------------------------------*/
 
+void initialize();
+void pause();
+int login(User &currentUser);
+void staffPrograms(User &currentUser);
+void adminPrograms(User &currentUser);
+bool checkFiles(string fileName);
+void createUserFile();
+void createObjectsFile();
+void createFoodsFile();
+void createDrinksFile();
 
-int init(vector<Product> &objects, vector<Product> &foods, vector<Product> &drinks);
+/*--------------------------------------------------------------------------------------------*/
+
+const string OBJECT_FILE = "object.dat";
+const string FOOD_FILE = "foods.dat";
+const string DRINK_FILE = "drinks.dat";
+const string USER_FILE = "user.dat";
+
+/*--------------------------------------------------------------------------------------------*/
 
 int main() {
-    vector<Product> objects, foods, drinks;
+    User currentUser;
 
-    if (init(objects, foods, drinks) != 0) {
-        cout << "ERROR INITIALIZING PRODUCT DATA" << endl;
-        return 1;
+    // Initialize program.
+    initialize();
+
+    cout << "PRODUCT MANAGING PROGRAMS" << endl;
+    cout << "\nPLEASE LOGIN TO CONTINUE." << endl;
+    pause();
+
+    login(currentUser);
+
+    if (currentUser.role == "staff") {
+       // staffPrograms(currentUser);
     }
+    else if (currentUser.role == "admin") {
+        //adminPrograms(currentUser);
+    } 
 
 
-    
     return 0;
 }
 
-int init(vector<Product> &objects, vector<Product> &foods, vector<Product> &drinks)
-{
-    ifstream InObjectFile, InFoodFile, InDrinkFile;
 
-    string line;
+/*--------------------------------------------------------------------------------------------*/
+/*-------------------------------------DEFINE FUNCTION----------------------------------------*/
+/*--------------------------------------------------------------------------------------------*/
 
-    InObjectFile.open("data\\objects.dat");
+void initialize() {
+    // Initialize program setting.
+    // Check the files.
+    // Create default data if not exist.
 
-    if (InObjectFile.is_open()) {
+    if (! checkFiles(USER_FILE)) createUserFile();
+    if (! checkFiles(OBJECT_FILE)) createObjectsFile();
+    if (! checkFiles(FOOD_FILE)) createFoodsFile();
+    if (! checkFiles(DRINK_FILE)) createDrinksFile();
 
-        while (getline(InObjectFile, line)) {
 
-            stringstream ss(line);
-            string subdata;
-            vector<string> data;
+    return;
+}
 
-            while (getline(ss, subdata, ',')) {
-                data.push_back(subdata);
-            }
+bool checkFiles(string fileName) {
+    // Check the existance of files
+    // Return true if exist
 
-            Product p;
-            p.ID = data[0];
-            p.name = data[1];
-            p.category = "Object";
-            p.price = stof(data[2]);
-            p.amount = stoi(data[3]);
-            p.expire_date = data[4];
+    bool flag;
+    ifstream inputFile;
 
-            objects.push_back(p);
-        }
+    inputFile.open(fileName);
+    if (inputFile.is_open()) flag = true;
+    else flag = false;
+    inputFile.close();
+
+    return flag;
+}
+
+void createUserFile() {
+    // Create a starting user data.
+    ofstream outputFile;
+
+    outputFile.open(USER_FILE.c_str());
+    outputFile << "admin1,1234,Administrator,admin" << endl;
+    outputFile.close();
+    return;
+}
+
+void createObjectsFile() {
+    ofstream o(OBJECT_FILE);
+    if (o.is_open()) {
+        o << "O1,Notebook,35.50,20,2026-05-10";
+        o << "O2,Pencil,5.00,100,2028-12-31";
+        o << "O3,Pen,12.75,50,2027-09-15";
+        o << "O4,Eraser,8.25,40,2029-01-01";
+        o << "O5,Ruler,15.00,30,2028-07-22";
+        o.close();
     }
-    else {
-        cout << "ERROR OPENING OBJECTS FILE" << endl;
-        return 1;
+}
+
+void createFoodsFile() {
+    ofstream f(FOOD_FILE);
+    if (f.is_open()) {
+        f << "F1,Burger,120.00,30,2025-12-31\n";
+        f << "F2,Pizza,200.00,20,2025-12-31\n";
+        f << "F3,Fried Rice,80.00,50,2025-12-31\n";
+        f << "F4,Salad,70.00,40,2025-12-31\n";
+        f << "F5,Sandwich,90.00,25,2025-12-31\n";
+        f << "F6,Spaghetti,110.00,30,2025-12-31\n";
+        f.close();
     }
+}
 
-    InObjectFile.close();
-
-    InFoodFile.open("data\\foods.dat");
-
-    if (InFoodFile.is_open()) {
-
-        while (getline(InFoodFile, line)) {
-
-            stringstream ss(line);
-            string subdata;
-            vector<string> data;
-
-            while (getline(ss, subdata, ',')) {
-                data.push_back(subdata);
-            }
-
-            Product p;
-            p.ID = data[0];
-            p.name = data[1];
-            p.category = "Food";
-            p.price = stof(data[2]);
-            p.amount = stoi(data[3]);
-            p.expire_date = data[4];
-
-            objects.push_back(p);
-        }
+void createDrinksFile() {
+    ofstream d(DRINK_FILE);
+    if (d.is_open()) {
+        d << "D1,Water,10.00,200,2025-12-31\n";
+        d << "D2,Juice,25.00,120,2025-12-31\n";
+        d << "D3,Milk,20.00,100,2025-12-31\n";
+        d << "D4,Soda,22.00,150,2025-12-31\n";
+        d << "D5,Tea,15.00,180,2025-12-31\n";
+        d << "D6,Coffee,30.00,80,2025-12-31\n";
+        d.close();
     }
-    else {
-        cout << "ERROR OPENING FOODS FILE" << endl;
-    }
+}
 
-    InFoodFile.close();
+/*--------------------------------------------------------------------------------------------*/
 
-    InDrinkFile.open("data\\drinks.dat");
+void pause() {
+    char wait;
+    cin.get(wait);
+    cin.get(wait);
+}
 
-    if (InDrinkFile.is_open()) {
+/*--------------------------------------------------------------------------------------------*/
 
-        while (getline(InDrinkFile, line)) {
+int login(User &currentUser) {
 
-            stringstream ss(line);
-            string subdata;
-            vector<string> data;
 
-            while (getline(ss, subdata, ',')) {
-                data.push_back(subdata);
-            }
-
-            Product p;
-            p.ID = data[0];
-            p.name = data[1];
-            p.category = "Drink";
-            p.price = stof(data[2]);
-            p.amount = stoi(data[3]);
-            p.expire_date = data[4];
-
-            objects.push_back(p);
-        }
-    }
-    else {
-        cout << "ERROR OPENING DRINKS FILE" << endl;
-        return 1;
-    }
-
-    InDrinkFile.close();
-
-    return 0;
 }

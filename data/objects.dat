@@ -1,5 +1,6 @@
-O001,Shampoo Sunsilk,85.00,40,-
-O002,Bath Soap Dove,25.00,60,-
-O003,Toothpaste Colgate,45.00,35,-
-O004,Tissue Paper 6 Rolls,55.00,50,-
-O005,Laundry Powder Breeze,120.00,25,-
+O1,Ketchup,50.00,100,2030-12-31
+O2,Oil,100.00,50,2030-12-31
+O3,Salt,20.00,200,2030-12-31
+O4,Pepper,25.00,150,2030-12-31
+O5,Cheese,80.00,60,2030-12-31
+O6,Flour,40.00,100,2030-12-31
