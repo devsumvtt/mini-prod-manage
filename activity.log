@@ -1,33 +1,40 @@
-1759573889,staff1,Logged in,Successfully Login
-1759573903,staff1,Logged out,User logged out
-1759575899,staff1,Logged in,Successfully Login
-1759575929,staff1,Logged out,User logged out
-1759579520,staff1,Logged in,Successfully Login
-1759579566,staff1,Logged in,Successfully Login
-1759579634,staff1,Logged in,Successfully Login
-1759580032,staff1,Logged in,Successfully Login
-1759580085,staff1,Logged out,User logged out
-1759580134,staff1,Logged in,Successfully Login
-1759580209,staff1,Logged out,User logged out
-1759580337,staff1,Logged in,Successfully Login
-1759580463,staff1,Logged in,Successfully Login
-1759580611,staff1,Logged out,User logged out
-1759580681,staff1,Logged in,Successfully Login
-1759580710,staff1,Logged out,User logged out
-1759580763,staff1,Logged in,Successfully Login
-1759580797,staff1,Logged out,User logged out
-1759583795,staff1,Logged in,Successfully Login
-1759583825,staff1,Logged out,User logged out
-1759583838,staff1,Logged in,Successfully Login
-1759583844,staff1,Logged out,User logged out
-1759583926,staff1,Logged in,Successfully Login
-1759584014,,Logged out,User logged out
-1759584518,staff1,Logged in,Successfully Login
-1759584528,,Logged out,User logged out
-1759584982,staff1,Logged in,Successfully Login
-1759585032,,Logged out,User logged out
-1759589215,admin1,Logged in,Successfully Login
-1759589478,admin,Add Product,Added product ID: O29
-1759589612,,Logged out,User logged out
-1759589886,staff1,Logged in,Successfully Login
-1759589935,,Logged out,User logged out
+2025-10-05 14:23:44,admin1,Logged in,Successfully Login
+2025-10-05 14:25:52,admin1,Logged in,Successfully Login
+2025-10-05 14:26:13,,Logged out,User logged out
+2025-10-05 14:26:50,admin1,Logged in,Successfully Login
+2025-10-05 14:27:26,,Logged out,User logged out
+2025-10-05 18:24:29,admin1,Logged in,Successfully Login
+2025-10-05 18:25:22,,Logged out,User logged out
+2025-10-05 18:26:48,staff1,Logged in,Successfully Login
+2025-10-05 18:29:17,staff1,Logged in,Successfully Login
+2025-10-05 18:29:47,,Logged out,User logged out
+2025-10-05 18:32:48,staff1,Logged in,Successfully Login
+2025-10-05 18:34:46,staff1,Logged in,Successfully Login
+2025-10-05 18:36:32,staff1,Logged in,Successfully Login
+1759667595,admin1,Logged in,Successfully Login
+1759667622,admin,Add User,Added user: staff2
+1759667801,admin1,Logged in,Successfully Login
+1759667849,admin,Update User,Updated user: staff1
+1759667869,admin,Delete User,Deleted user: staff2
+1759668020,admin1,Logged in,Successfully Login
+1759668042,admin,Add User,Added user: Bdd
+1759668101,admin,Update User,Updated user: staff1
+1759668953,admin1,Logged in,Successfully Login
+1759669017,admin,Add Product,Added product ID: D11
+1759669068,admin,Update Product,Updated product ID: D11
+1759669078,admin,Delete Product,Deleted product ID: D11
+1759721419,admin1,Logged in,Successfully Login
+1759721576,admin,Update User,Updated user: Bdd
+1759721713,admin1,Logged in,Successfully Login
+1759721818,admin,Update User,Updated user: staff1
+1759723183,staff1,Logged in,Successfully Login
+1759723977,staff1,Logged in,Successfully Login
+1759724005,staff1,Logged in,Successfully Login
+1759724338,staff1,Logged in,Successfully Login
+1759724961,staff1,Logged in,Successfully Login
+1759725014,staff1,Logged in,Successfully Login
+1759725050,staff1,Logged in,Successfully Login
+1759725094,,Logged out,User logged out
+1759725373,staff1,Logged in,Successfully Login
+1759726306,staff1,Logged in,Successfully Login
+2025-10-06 12:12:07,staff1,Logged in,Successfully Login

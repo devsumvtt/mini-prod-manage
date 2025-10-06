@@ -31,6 +31,13 @@ typedef enum {
 
 /*--------------------------------------------------------------------------------------------*/
 
+void saveSaleRecord(const vector<pair<int, Product>> &basket);
+void updateStock(const vector<pair<int, Product>> &basket, vector<Product>* products[], int numCategories);
+void checkout(vector<pair<int, Product>> &basket, vector<Product>* products[], int numCategories);
+void calculate(const vector<pair<int, Product>> &basket);
+void removeFromBasket(vector<pair<int, Product>> &basket);
+void showBatch(const vector<pair<int, Product>>& basket);
+void addToBasket(vector<pair<int, Product>> &basket, vector<Product>* products[], int numCategories);
 void initialize();
 void pause();
 void log(string user, string action, string details, string timestamp);
@@ -62,7 +69,7 @@ void viewUsers(const vector<User> &users);
 void addUser(vector<User> &users);
 void updateUser(vector<User> &users);
 void deleteUser(vector<User> &users);
-
+string getCurrentTime();
 
 
 /*--------------------------------------------------------------------------------------------*/
@@ -103,7 +110,7 @@ int main() {
         }
 
         if (currentUser.role == "staff" || currentUser.role == "admin") {
-            log(currentUser.username, "Logged in", "Successfully Login", to_string(time(0)));
+            log(currentUser.username, "Logged in", "Successfully Login", getCurrentTime());
             cout << "\nLogin successful. Welcome, " << currentUser.name << "!" << endl;
             pause();
         }
@@ -202,6 +209,16 @@ void createProductsFile() {
 }
 
 /*--------------------------------------------------------------------------------------------*/
+string getCurrentTime() {
+
+    time_t now = std::time(nullptr);
+
+    tm *ltm = std::localtime(&now);
+
+    ostringstream oss;
+    oss << std::put_time(ltm, "%Y-%m-%d %H:%M:%S");
+    return oss.str();
+}
 
 void pause() {
     cin.clear();
@@ -355,7 +372,7 @@ void staffPrograms(User &currentUser) {
             case 5:
                 cout << "Logging out..." << endl;
                 logout(currentUser);
-                log(currentUser.username, "Logged out", "User logged out", to_string(time(0)));
+                log(currentUser.username, "Logged out", "User logged out", getCurrentTime());
                 break;
             default:
                 cout << "ERROR" << endl;
@@ -368,9 +385,288 @@ void staffPrograms(User &currentUser) {
 /*--------------------------------------------------------------------------------------------*/
 
 void sellProducts(vector<Product>* products[], int numCategories) {
-    // To be implemented
+    // Current batch sell product
+    Product testProduct = {"C2", "MD", 44.50, 20, "-"};
+    vector<pair<int, Product>> basket;
+    int choice;
+
+    do {
+        system("cls");
+        cout << "SELL PRODUCT" << endl;
+        cout << LINE << endl;
+        cout << "**THE RECORD WILL NOT BE SAVED UNTIL CHECKOUT**" << endl;
+        showBatch(basket);
+
+        cout << endl << LINE << endl;
+        cout << "1. Add product to basket.\n"
+             << "2. Remove product from basket.\n"
+             << "3. Checkout.\n"
+             << "4. Cancel and return to previous menu.\n";
+            
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        if (choice < 1 || choice > 4) {
+            cout << "Invalid choice." << endl;
+            continue;
+        }
+        
+
+        switch (choice) {
+            case 1:
+                addToBasket(basket, products, numCategories);
+                pause();
+                break;
+            case 2:
+                removeFromBasket(basket);
+                pause();
+                break;
+            case 3:
+                checkout(basket, products, numCategories);
+                pause();
+                break;
+            case 4:
+                basket.clear();
+                cout << "Return to previous menu..." << endl;
+
+        }
+
+    } while (choice != 4);
+
 }
 
+void showBatch(const vector<pair<int, Product>>& basket) {
+    cout << "\nCurrent Basket:\n";
+    if (basket.empty()) {
+        cout << "(empty)\n";
+        return;
+    }
+    cout << left << setw(20) << "Product"
+         << setw(10) << "Price"
+         << setw(10) << "Qty"
+         << setw(10) << "Total" << endl;
+    for (auto &item : basket) {
+        const Product &p = item.second;
+        int qty = item.first;
+        cout << left << setw(20) << p.name
+             << setw(10) << p.price
+             << setw(10) << qty
+             << setw(10) << p.price * qty << endl;
+    }
+}
+
+void addToBasket(vector<pair<int, Product>> &basket,
+                 vector<Product>* products[], int numCategories) {
+    string productName;
+    cout << "Enter product name: ";
+    cin.ignore(); // flush newline
+    getline(cin, productName);
+
+    // find product in all categories
+    Product* found = nullptr;
+    for (int i = 0; i < numCategories && !found; i++) {
+        for (auto &p : *products[i]) { // dereference the vector pointer
+            if (p.name == productName) {
+                found = &p;
+                break;
+            }
+        }
+    }
+
+    if (!found) {
+        cout << "Product not found.\n";
+        return;
+    }
+
+    cout << "Enter quantity to add: ";
+    int qty;
+    cin >> qty;
+
+    if (qty <= 0) {
+        cout << "Invalid quantity.\n";
+        return;
+    }
+
+    if (qty > found->quantity) {
+        cout << "Not enough stock. Available: " << found->quantity << "\n";
+        return;
+    }
+
+    // check if already in basket
+    bool inBasket = false;
+    for (auto &item : basket) {
+        if (item.second.id == found->id) { // match by id
+            // update quantity
+            item.first += qty;
+            inBasket = true;
+            break;
+        }
+    }
+
+    if (!inBasket) {
+        basket.push_back({qty, *found});
+    }
+
+    cout << "Added " << qty << " of " << found->name << " to basket.\n";
+}
+
+void removeFromBasket(vector<pair<int, Product>> &basket) {
+    if (basket.empty()) {
+        cout << "Basket is empty.\n";
+        return;
+    }
+
+    // show current basket first
+    showBatch(basket);
+
+    string productToDelete;
+    cout << "Enter product name to remove from basket: ";
+    cin.ignore();  // flush newline left by previous cin
+    getline(cin, productToDelete);
+
+    // find and erase
+    bool found = false;
+    for (auto it = basket.begin(); it != basket.end(); ++it) {
+        if (it->second.name == productToDelete) {
+            basket.erase(it);
+            cout << "Removed " << productToDelete << " from basket.\n";
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        cout << "Product \"" << productToDelete << "\" not found in basket.\n";
+    }
+}
+
+void checkout(vector<pair<int, Product>> &basket, vector<Product>* products[], int numCategories) {
+
+    calculate(basket);
+    updateStock(basket, products, numCategories);
+    saveSaleRecord(basket);
+    basket.clear();
+}
+
+void calculate(const vector<pair<int, Product>> &basket) {
+    if (basket.empty()) {
+        cout << "Basket is empty.\n";
+        return;
+    }
+
+    double total = 0;
+    cout << "\n---- RECEIPT ----\n";
+    cout << left << setw(20) << "Product"
+         << setw(10) << "Qty"
+         << setw(10) << "Price"
+         << setw(10) << "Subtotal" << endl;
+
+    for (auto &item : basket) {
+        int qty = item.first;
+        const Product &p = item.second;
+        double sub = qty * p.price;
+        total += sub;
+        cout << left << setw(20) << p.name
+             << setw(10) << qty
+             << setw(10) << p.price
+             << setw(10) << sub << endl;
+    }
+    cout << "-------------------------\n";
+    cout << "Total: " << total << "\n";
+}
+
+void updateStock(const vector<pair<int, Product>> &basket, vector<Product>* products[], int numCategories) {
+
+    int numItem = basket.size();
+    for (auto &item : basket) {
+        int soldQty = item.first;
+        const Product &soldProd = item.second;
+
+        // find matching product in inventory
+        for (int i = 0; i < numCategories; i++) {
+            for (auto &p : *products[i]) {
+                if (numItem <= 0) break;
+                if (p.id == soldProd.id) { // or compare by name
+                    if (p.quantity >= soldQty) {
+                        p.quantity -= soldQty;
+                    } else {
+                        // If basket qty > stock, zero it out
+                        p.quantity = 0;
+                    }
+
+                    numItem--;
+                }
+                
+            }
+        }
+    }
+
+    ofstream prodFile(PRODUCT_FILE);
+    for (int i = 0; i < numCategories; i++) {
+        for (auto &p : *products[i]) {
+            prodFile << p.id << "," << p.name << "," << p.price << "," << p.quantity << "," << p.expiryDate << endl;
+        }
+    }
+    prodFile.close();
+    cout << "Stock updated.\n";
+
+}
+
+void saveSaleRecord(const std::vector<std::pair<int, Product>> &basket) {
+    // define the struct
+    struct SaleRecord {
+        std::string saleID;
+        std::string timestamp;
+        std::string totalSales;
+    };
+
+    // generate timestamp
+    std::string timestr = getCurrentTime(); // "YYYY-MM-DD HH:MM:SS"
+
+    // extract parts by substrings:
+    std::string y  = timestr.substr(0,4);
+    std::string mo = timestr.substr(5,2);
+    std::string d  = timestr.substr(8,2);
+    std::string h  = timestr.substr(11,2);
+    std::string mn = timestr.substr(14,2);
+    std::string s  = timestr.substr(17,2);
+
+    // build saleID = y+mo+d+h+mn+s
+    std::string saleID = y + mo + d + h + mn + s;
+
+    // compute total sales amount
+    double total = 0;
+    for (auto &item : basket) {
+        total += item.first * item.second.price;
+    }
+
+    SaleRecord record{saleID, timestr, std::to_string(total)};
+
+    // append to file
+    ofstream out(SALES_FILE, ios_base::app);
+    if (!out) {
+        cerr << "Error opening sales files for writing.\n";
+        return;
+    }
+
+    // write header of this sale
+    out << record.saleID 
+        << "," << record.timestamp 
+        << "," << record.totalSales << "\n";
+
+    // write each product line
+    for (auto &item : basket) {
+        out << item.second.id << "," 
+            << item.second.name << "," 
+            << item.first << "," 
+            << item.second.price << "," 
+            << item.first * item.second.price << "\n";
+    }
+
+    out << "----\n";
+    out.close();
+    cout << "Sale recorded to sales.txt (Sale ID " << record.saleID << ")\n";
+}
 /*--------------------------------------------------------------------------------------------*/
 
 void viewProducts(vector<Product>* products[], int numCategories) {
@@ -807,12 +1103,31 @@ void addProduct(vector<Product>* products[], int numCategories) {
             return;
     }
 
+    cout << LINE << endl;
+    cout << "STATUS" << endl;
+    cout << LINE << endl;
+            
+    cout << "ID: " << id << endl;
+    cout << "Name: " << name << endl;
+    cout << "Price: " << price << endl;
+    cout << "Stocks: " << quantity << endl;
+    cout << "Expiry Date: " << expiryDate << endl;
+
+    char confirmation;
+    cout << "Are you sure you want to add this product? (Y/N): \n";
+    cin >> confirmation;
+
+    if (confirmation != 'Y' && confirmation != 'y') {
+        cout << "add product cancelled." << endl;
+        return;
+    }
+
     // Add product to the appropriate category
     products[category]->push_back({id, name, price, quantity, expiryDate});
     cout << "Product added successfully." << endl;
 
     // Log the addition
-    log("admin", "Add Product", "Added product ID: " + id, to_string(time(0)));
+    log("admin", "Add Product", "Added product ID: " + id, getCurrentTime());
 
     // Save to file
     ofstream outputFile(PRODUCT_FILE);
@@ -830,7 +1145,9 @@ void addProduct(vector<Product>* products[], int numCategories) {
 void updateProduct(vector<Product>* products[], int numCategories) {
     string searchID;
     bool found = false;
-
+    string newName, newExpiry;
+    double newPrice;
+    int newQty;
     cout << "\nUPDATE PRODUCT" << endl;
     cout << "Enter Product ID to update: ";
     getline(cin, searchID);
@@ -850,26 +1167,58 @@ void updateProduct(vector<Product>* products[], int numCategories) {
 
                 cout << "New Name: ";
                 getline(cin, input);
-                if (!input.empty()) prod.name = input;
+                if (!input.empty()) newName = input;
 
                 cout << "New Price: ";
                 getline(cin, input);
-                if (!input.empty()) prod.price = stod(input);
+                if (!input.empty()) newPrice = stod(input);
 
                 cout << "New Quantity: ";
                 getline(cin, input);
-                if (!input.empty()) prod.quantity = stoi(input);
+                if (!input.empty()) newQty = stoi(input);
 
                 if (prod.id[0] == 'F' || prod.id[0] == 'D') {
                     cout << "New Expiry Date (YYYY-MM-DD): ";
                     getline(cin, input);
-                    if (!input.empty()) prod.expiryDate = input;
+                    if (!input.empty()) newExpiry = input;
                 }
+
+                cout << LINE << endl;
+                cout << "STATUS" << endl;
+                cout << LINE << endl;
+            
+                cout << "ID: " << prod.id << endl;
+                cout << "Name: " << prod.name; 
+                if (!newName.empty()) cout << " -> " << newName; 
+                cout << endl;
+                cout << "Price: " << prod.price; 
+                if (prod.price != newPrice) cout << " -> " << newPrice; 
+                cout << endl;
+                cout << "Quantity: " << prod.quantity;
+                if (prod.quantity != newQty) cout << " -> " << newQty; 
+                cout << endl;
+                cout << "Expiry Date: " << prod.expiryDate;
+                if (!newExpiry.empty()) cout << " -> " << newExpiry;
+                cout << endl;
+
+                char confirmation;
+                cout << "Are you sure you want to update this product? (Y/N): \n";
+                cin >> confirmation;
+
+                if (confirmation != 'Y' && confirmation != 'y') {
+                    cout << "Update product cancelled." << endl;
+                    return;
+                }
+
+                prod.name = newName.empty() ? prod.name : newName;
+                prod.price = (prod.price == newPrice) ? prod.price : newPrice;
+                prod.quantity = (prod.quantity == newQty) ? prod.quantity : newQty;
+                prod.expiryDate = newExpiry.empty() ? prod.expiryDate : newExpiry;
 
                 cout << "Product updated successfully." << endl;
 
                 // Log the update
-                log("admin", "Update Product", "Updated product ID: " + searchID, to_string(time(0)));
+                log("admin", "Update Product", "Updated product ID: " + searchID, getCurrentTime());
 
                 // Save to file
                 ofstream outputFile(PRODUCT_FILE);
@@ -906,11 +1255,29 @@ void deleteProduct(vector<Product>* products[], int numCategories) {
         for (auto it = products[i]->begin(); it != products[i]->end(); ++it) {
             if (it->id == searchID) {
                 found = true;
+
+                cout << "Current details:" << endl;
+                cout << "Name: " << it->name << endl;
+                cout << "Price: " << it->price << endl;
+                cout << "Quantity: " << it->quantity << endl;
+                cout << "Expiry Date: " << it->expiryDate << endl;
+                char confirmation;
+                cout << "Are you sure you want to delete this product? (Y/N): \n";
+                cin >> confirmation;
+
                 products[i]->erase(it);
+
+                if (confirmation != 'Y' && confirmation != 'y') {
+                    cout << "Deletion cancelled." << endl;
+                    return;
+                }
+
+                products[i]->erase(it);
+
                 cout << "Product deleted successfully." << endl;
 
                 // Log the deletion
-                log("admin", "Delete Product", "Deleted product ID: " + searchID, to_string(time(0)));
+                log("admin", "Delete Product", "Deleted product ID: " + searchID, getCurrentTime());
 
                 // Save to file
                 ofstream outputFile(PRODUCT_FILE);
@@ -1047,12 +1414,31 @@ void addUser(vector<User> &users) {
         cout << "Invalid role. Must be 'admin' or 'staff'." << endl;
         return;
     }
+    
+    // Show demo 
+    cout << LINE << endl;
+    cout << "STATUS" << endl;
+    cout << LINE << endl;
+            
+    cout << "Username: " << username << endl;
+    cout << "Password: " << password << endl;
+    cout << "Name: " << name << endl;
+    cout << "Role: " << role << endl;
+
+    char confirmation;
+    cout << "Are you sure you want to add this user? (Y/N): \n";
+    cin >> confirmation;
+
+    if (confirmation != 'Y' && confirmation != 'y') {
+        cout << "add user cancelled." << endl;
+        return;
+    }
 
     users.push_back({username, password, name, role});
     cout << "User added successfully." << endl;
 
     // Log the addition
-    log("admin", "Add User", "Added user: " + username, to_string(time(0)));
+    log("admin", "Add User", "Added user: " + username, getCurrentTime());
 
     // Save to file
     ofstream outputFile(USER_FILE);
@@ -1067,6 +1453,7 @@ void addUser(vector<User> &users) {
 
 void updateUser(vector<User> &users) {
     string searchUsername;
+    string newName, newPassword, newRole;
     bool found = false;
 
     cout << "\nUPDATE USER" << endl;
@@ -1085,27 +1472,57 @@ void updateUser(vector<User> &users) {
 
             cout << "New Password: ";
             getline(cin, input);
-            if (!input.empty()) user.password = input;
+            if (!input.empty()) newPassword = input;
+            input.clear();
 
             cout << "New Name: ";
             getline(cin, input);
-            if (!input.empty()) user.name = input;
+            if (!input.empty()) newName = input;
+            input.clear();
 
             cout << "New Role (admin/staff): ";
             getline(cin, input);
             if (!input.empty()) {
                 if (input == "admin" || input == "staff") {
-                    user.role = input;
+                    newRole = input;
                 } else {
                     cout << "Invalid role. Must be 'admin' or 'staff'." << endl;
                     return;
                 }
             }
 
+            cout << LINE << endl;
+            cout << "STATUS" << endl;
+            cout << LINE << endl;
+            
+            cout << "Username: " << user.username << endl;
+            cout << "Password: " << user.password; 
+            if (!newPassword.empty()) cout << " -> " << newPassword; 
+            cout << endl;
+            cout << "Name: " << user.name; 
+            if (!newName.empty()) cout << " -> " << newName; 
+            cout << endl;
+            cout << "Role: " << user.role;
+            if (user.role != newRole) cout << " -> " << newRole; 
+            cout << endl;
+
+            char confirmation;
+            cout << "Are you sure you want to update this user? (Y/N): \n";
+            cin >> confirmation;
+
+            if (confirmation != 'Y' && confirmation != 'y') {
+                cout << "Update user cancelled." << endl;
+                return;
+            }
+
+            user.name = newName.empty() ?  user.name : newName;
+            user.password = newPassword.empty() ? user.password : newPassword;
+            user.role = newRole.empty() ? user.role : newRole;
+
             cout << "User updated successfully." << endl;
 
             // Log the update
-            log("admin", "Update User", "Updated user: " + searchUsername, to_string(time(0)));
+            log("admin", "Update User", "Updated user: " + searchUsername, getCurrentTime());
 
             // Save to file
             ofstream outputFile(USER_FILE);
@@ -1136,11 +1553,29 @@ void deleteUser(vector<User> &users) {
     for (auto it = users.begin(); it != users.end(); ++it) {
         if (it->username == searchUsername) {
             found = true;
+
+            // Show detail of delete user
+            cout << LINE << endl;
+            cout << "DETAIL" << endl;
+            cout << LINE << endl;
+            cout << "Username: " << it->username << endl;
+            cout << "Name: " << it->name << endl;
+            cout << "Role: " << it->role << endl;
+
+            char confirmation;
+            cout << "Are you sure to delete this user? (y/n).\n";
+            cin >> confirmation;
+            
+            if (confirmation != 'Y' && confirmation != 'y') {
+                cout << "Delete user cancelled." << endl;
+                return;
+            }
+
             users.erase(it);
             cout << "User deleted successfully." << endl;
 
             // Log the deletion
-            log("admin", "Delete User", "Deleted user: " + searchUsername, to_string(time(0)));
+            log("admin", "Delete User", "Deleted user: " + searchUsername, getCurrentTime());
 
             // Save to file
             ofstream outputFile(USER_FILE);
@@ -1170,10 +1605,11 @@ void viewReports(vector<Product>* products[], int numCategories) {
 /*--------------------------------------------------------------------------------------------*/
 
 void checkLog() {
-    const int TIMESTAMP_WIDTH = 20;
+    const int TIMESTAMP_WIDTH = 25;
     const int USER_WIDTH = 15;
     const int ACTION_WIDTH = 20;
     const int DETAILS_WIDTH = 30;
+    
     ifstream logFile(LOG_FILE);
     string line;
 
